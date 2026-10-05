@@ -225,6 +225,8 @@ export function SearchInput({
 export interface ComboboxItemProps {
   label: string;
   description?: string;
+  /** 1 keeps the description inline after the label. More stacks it under the label. */
+  descriptionLines?: number;
   kind?: "directory" | "file";
   leadingSlot?: ReactNode;
   trailingSlot?: ReactNode;
@@ -241,6 +243,7 @@ export interface ComboboxItemProps {
 export function ComboboxItem({
   label,
   description,
+  descriptionLines = 1,
   kind,
   leadingSlot,
   trailingSlot,
@@ -282,9 +285,14 @@ export function ComboboxItem({
     [elevated, active, disabled],
   );
 
+  const stacked = descriptionLines > 1;
   const itemContentStyle = useMemo(
-    () => [styles.comboboxItemContent, description && styles.comboboxItemContentInline],
-    [description],
+    () => [
+      styles.comboboxItemContent,
+      description &&
+        (stacked ? styles.comboboxItemContentStacked : styles.comboboxItemContentInline),
+    ],
+    [description, stacked],
   );
 
   return (
@@ -302,7 +310,7 @@ export function ComboboxItem({
           {label}
         </Text>
         {description ? (
-          <Text numberOfLines={1} style={styles.comboboxItemDescription}>
+          <Text numberOfLines={descriptionLines} style={styles.comboboxItemDescription}>
             {description}
           </Text>
         ) : null}
@@ -1709,6 +1717,9 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "baseline",
     gap: theme.spacing[2],
+  },
+  comboboxItemContentStacked: {
+    gap: theme.spacing[0.5],
   },
   comboboxItemLeadingSlot: {
     width: 16,

@@ -38,7 +38,23 @@ import { seedWorkspace } from "../support/helpers/seed-client";
 import { hasGithubAuth, createTempGithubRepo } from "../support/helpers/github-fixtures";
 import { getServerId } from "../support/helpers/server-id";
 import { openFileExplorer } from "../support/helpers/file-explorer";
-import { attachFileFromMenu, controlFileUploadCompletion } from "../support/helpers/composer";
+import {
+  attachFileFromMenu,
+  controlFileUploadCompletion,
+  submitMessage,
+} from "../support/helpers/composer";
+import {
+  ISSUE,
+  LONG_PROMPT,
+  SHORT_PROMPT,
+  expectInlineRow,
+  expectPluginAttachmentPill,
+  expectSentPluginAttachment,
+  expectStackedRow,
+  installAttachmentRowsPlugin,
+  openPluginAttachmentPicker,
+  saveScreenshot,
+} from "../support/helpers/plugin-attachment-rows";
 
 const MINIMAL_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
@@ -307,6 +323,60 @@ test.describe("Composer attachments", () => {
     } finally {
       agentCreatedDelay.release();
       await workspace.cleanup();
+    }
+  });
+});
+
+test.describe("Plugin attachment source rows", () => {
+  for (const width of [1100, 390]) {
+    test(`stack subtitles only for sources that opt in at width ${width}`, async ({
+      page,
+      withWorkspace,
+    }, info) => {
+      const uninstall = await installAttachmentRowsPlugin();
+      try {
+        const workspace = await withWorkspace({ prefix: "attach-plugin-rows-" });
+        await workspace.navigateTo();
+        await clickNewChat(page);
+        await expectComposerVisible(page);
+        await page.setViewportSize({ width, height: 900 });
+
+        await openPluginAttachmentPicker(page, "Saved prompt", LONG_PROMPT.title);
+        await saveScreenshot(page, info, `stacked-${width}`);
+        const long = await expectStackedRow(page, LONG_PROMPT.title, LONG_PROMPT);
+        const short = await expectStackedRow(page, SHORT_PROMPT.title, SHORT_PROMPT);
+        expect(Math.round(long.subtitleHeight / short.subtitleHeight)).toBe(4);
+        await page.getByRole("button", { name: LONG_PROMPT.title, exact: true }).click();
+        await expectPluginAttachmentPill(page, "Saved prompt", LONG_PROMPT.title);
+
+        const issueLabel = `${ISSUE.identifier} ${ISSUE.title}`;
+        await openPluginAttachmentPicker(page, "Acme issue", issueLabel);
+        await saveScreenshot(page, info, `inline-${width}`);
+        await expectInlineRow(page, issueLabel, ISSUE);
+      } finally {
+        await uninstall();
+      }
+    });
+  }
+
+  test("keyboard selection reaches stacked rows", async ({ page, withWorkspace }, info) => {
+    const uninstall = await installAttachmentRowsPlugin();
+    try {
+      const workspace = await withWorkspace({ prefix: "attach-plugin-keys-" });
+      await workspace.navigateTo();
+      await clickNewChat(page);
+      await expectComposerVisible(page);
+
+      await openPluginAttachmentPicker(page, "Saved prompt", LONG_PROMPT.title);
+      await page.keyboard.press("ArrowUp");
+      await page.keyboard.press("Enter");
+      await expectPluginAttachmentPill(page, "Saved prompt", SHORT_PROMPT.title);
+      await saveScreenshot(page, info, "pill");
+      await submitMessage(page, "Use the attached prompt");
+      await expectSentPluginAttachment(page, "Saved prompt", SHORT_PROMPT.title);
+      await saveScreenshot(page, info, "sent");
+    } finally {
+      await uninstall();
     }
   });
 });

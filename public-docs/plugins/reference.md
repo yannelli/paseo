@@ -2232,6 +2232,8 @@ export default function contribute(server: PluginServerContext) {
 
 Paseo owns the composer menu, search picker, selected pill, draft state, and submission. The `text` value is the complete snapshot sent to the agent.
 
+A picker row shows the item `identifier` and `title` on one line, followed by its `subtitle`. Return an empty `identifier` when items have no short ID; the row, pill, and agent attachment then use the title alone. Set `subtitleLines` on the source, an integer from 1 to 4 that defaults to 1, to stack the subtitle under the title and wrap it to that many lines. Apps that predate `subtitleLines` ignore it and keep the one-line row.
+
 ## Hosts and lifecycle
 
 Plugins are installed per daemon. When the same contribution exists on several connected hosts, Paseo shows one sidebar item and adds a host picker. The selected host supplies the bundle, Paseo API, RPC transport, and query cache. Calls never fall through to another host when the selected host is offline.

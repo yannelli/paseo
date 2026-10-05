@@ -23,6 +23,10 @@ export interface PluginResourceSourceIdentity {
   sourceIcon: string;
 }
 
+export function pluginAttachmentItemLabel(item: PluginAttachmentItem): string {
+  return item.identifier ? `${item.identifier} ${item.title}` : item.title;
+}
+
 export function createPluginResourceAttachment(
   source: PluginResourceSourceIdentity,
   item: PluginAttachmentItem,
@@ -55,7 +59,7 @@ export function pluginResourceAttachmentToAgentAttachment(
   return {
     type: "text",
     mimeType: "text/plain",
-    title: `${attachment.item.identifier} ${attachment.item.title}`,
+    title: pluginAttachmentItemLabel(attachment.item),
     text: attachment.item.text,
     externalResource: {
       provider: attachment.pluginId,

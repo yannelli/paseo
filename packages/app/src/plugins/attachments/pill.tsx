@@ -40,6 +40,8 @@ export function PluginResourceAttachmentPill({
   removeLabel,
 }: PluginResourceAttachmentPillProps) {
   const Icon = resolvePluginIcon(attachment.sourceIcon);
+  const { identifier, title } = attachment.item;
+  const itemName = identifier || title;
   const handleOpen = useCallback(() => onOpen(attachment), [attachment, onOpen]);
   const handleRemove = useCallback(() => onRemove(index), [index, onRemove]);
   const icon = useMemo(
@@ -51,14 +53,14 @@ export function PluginResourceAttachmentPill({
       testID="composer-plugin-resource-attachment-pill"
       onOpen={handleOpen}
       onRemove={handleRemove}
-      openAccessibilityLabel={openLabel(attachment.sourceTitle, attachment.item.identifier)}
-      removeAccessibilityLabel={removeLabel(attachment.sourceTitle, attachment.item.identifier)}
+      openAccessibilityLabel={openLabel(attachment.sourceTitle, itemName)}
+      removeAccessibilityLabel={removeLabel(attachment.sourceTitle, itemName)}
       disabled={disabled}
     >
       <AttachmentLabel
         icon={icon}
-        title={attachment.item.title}
-        subtitle={`${attachment.sourceTitle} ${attachment.item.identifier}`}
+        title={title}
+        subtitle={identifier ? `${attachment.sourceTitle} ${identifier}` : attachment.sourceTitle}
       />
     </AttachmentPill>
   );

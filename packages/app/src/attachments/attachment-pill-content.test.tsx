@@ -26,4 +26,28 @@ describe("agent attachment pill content", () => {
     expect(content.title).toBe("Plugin attachments");
     expect(content.subtitle).toBe("Linear issue ENG-123");
   });
+
+  it("presents external resources without an identifier by provider alone", () => {
+    const content = getAgentAttachmentPillContent(
+      {
+        type: "text",
+        mimeType: "text/plain",
+        title: "Code review checklist",
+        text: "Read the diff before the tests.",
+        externalResource: {
+          provider: "prompts",
+          providerLabel: "Saved prompt",
+          resourceType: "prompt",
+          id: "prompt-1",
+          identifier: "",
+          title: "Code review checklist",
+          url: "https://example.com/prompts/prompt-1",
+        },
+      },
+      i18n.t,
+    );
+
+    expect(content.title).toBe("Code review checklist");
+    expect(content.subtitle).toBe("Saved prompt");
+  });
 });

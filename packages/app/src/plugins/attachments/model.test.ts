@@ -66,4 +66,13 @@ describe("plugin resource attachments", () => {
       attachments: [agentAttachment],
     });
   });
+
+  it("titles a resource without an identifier by its title alone", () => {
+    const attachment = createPluginResourceAttachment(source, { ...item, identifier: "" });
+
+    expect(pluginResourceAttachmentToAgentAttachment(attachment)).toMatchObject({
+      type: "text",
+      title: "Plugin attachments",
+    });
+  });
 });

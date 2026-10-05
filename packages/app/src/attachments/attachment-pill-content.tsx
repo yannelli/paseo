@@ -88,10 +88,11 @@ export function getAgentAttachmentPillContent(
       };
     case "text":
       if (attachment.externalResource) {
+        const { identifier, providerLabel, title } = attachment.externalResource;
         return {
           icon: attachmentGithubIssueIcon,
-          title: attachment.externalResource.title,
-          subtitle: `${attachment.externalResource.providerLabel} ${attachment.externalResource.identifier}`,
+          title,
+          subtitle: identifier ? `${providerLabel} ${identifier}` : providerLabel,
         };
       }
       return {

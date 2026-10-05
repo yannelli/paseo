@@ -77,6 +77,8 @@ export interface PluginAttachmentSourceContribution {
   pickerTitle: string;
   searchPlaceholder: string;
   search: PluginRpcContract;
+  /** Integer from 1 to 4. Above 1, picker rows stack the item subtitle under its title. */
+  subtitleLines?: number;
 }
 
 export type PluginTimelineData = JsonValue;

@@ -459,6 +459,49 @@ describe("evaluatePluginClientBundle", () => {
     expect(plugin.id).toBe("review");
   });
 
+  it("keeps the subtitle line count of an attachment source", () => {
+    const plugin = evaluatePluginClientBundle(
+      "prompts",
+      bundle(`
+        plugin.addAttachmentSource({
+          id: "prompts",
+          title: "Saved prompt",
+          icon: "FileText",
+          pickerTitle: "Attach saved prompt",
+          searchPlaceholder: "Search prompts",
+          search: { name: "prompts.search", input: {}, output: {} },
+          subtitleLines: 4,
+        });
+      `),
+    );
+
+    expect(plugin.attachmentSources.map((source) => source.subtitleLines)).toEqual([4]);
+  });
+
+  it.each([
+    ["0", "0"],
+    ["5", "5"],
+    ["2.5", "2.5"],
+    ['"4"', "4"],
+  ])("rejects attachment source subtitle lines of %s", (value, message) => {
+    expect(() =>
+      evaluatePluginClientBundle(
+        "prompts",
+        bundle(`
+          plugin.addAttachmentSource({
+            id: "prompts",
+            title: "Saved prompt",
+            icon: "FileText",
+            pickerTitle: "Attach saved prompt",
+            searchPlaceholder: "Search prompts",
+            search: { name: "prompts.search", input: {}, output: {} },
+            subtitleLines: ${value},
+          });
+        `),
+      ),
+    ).toThrow(`Attachment source prompts has invalid subtitle lines: ${message}`);
+  });
+
   it("rejects duplicate attachment source ids", () => {
     expect(() =>
       evaluatePluginClientBundle(

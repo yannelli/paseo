@@ -7,13 +7,22 @@ import { searchPluginAttachments } from "@getpaseo/plugin/client/host";
 import type { LucideIcon } from "lucide-react-native";
 import type { UserComposerAttachment } from "@/attachments/types";
 import type { AttachmentMenuItem } from "@/composer/input/input";
-import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
+import {
+  Combobox,
+  ComboboxItem,
+  type ComboboxOption,
+  type ComboboxProps,
+} from "@/components/ui/combobox";
 import { useFetchQuery } from "@/data/query";
 import { ICON_SIZE, type Theme } from "@/styles/theme";
 import { resolvePluginIcon } from "../icons";
 import { useInstalledPlugins } from "../registry";
 import type { InstalledPlugin } from "../types";
-import { createPluginResourceAttachment, togglePluginResourceAttachment } from "./model";
+import {
+  createPluginResourceAttachment,
+  pluginAttachmentItemLabel,
+  togglePluginResourceAttachment,
+} from "./model";
 
 const SEARCH_STALE_TIME_MS = 30_000;
 const EMPTY_ATTACHMENT_ITEMS: PluginAttachmentItem[] = [];
@@ -69,9 +78,25 @@ function installedAttachmentSources(
 function attachmentOptions(items: PluginAttachmentItem[]): ComboboxOption[] {
   return items.map((item) => ({
     id: item.id,
-    label: `${item.identifier} ${item.title}`,
+    label: pluginAttachmentItemLabel(item),
     description: item.subtitle,
   }));
+}
+
+function stackedOptionRenderer(lines: number): ComboboxProps["renderOption"] {
+  if (lines <= 1) return undefined;
+  return function renderStackedOption({ option, selected, active, onPress }) {
+    return (
+      <ComboboxItem
+        label={option.label}
+        description={option.description}
+        descriptionLines={lines}
+        selected={selected}
+        active={active}
+        onPress={onPress}
+      />
+    );
+  };
 }
 
 export function usePluginAttachmentPicker(
@@ -114,6 +139,8 @@ export function usePluginAttachmentPicker(
     ? EMPTY_ATTACHMENT_ITEMS
     : (search.data?.items ?? EMPTY_ATTACHMENT_ITEMS);
   const options = useMemo(() => attachmentOptions(items), [items]);
+  const subtitleLines = active?.source.subtitleLines ?? 1;
+  const renderOption = useMemo(() => stackedOptionRenderer(subtitleLines), [subtitleLines]);
   const close = useCallback(() => {
     setActiveKey(null);
     setQuery("");
@@ -164,6 +191,7 @@ export function usePluginAttachmentPicker(
         options={options}
         value=""
         onSelect={handleSelect}
+        renderOption={renderOption}
         searchable
         searchPlaceholder={active.source.searchPlaceholder}
         title={active.source.pickerTitle}

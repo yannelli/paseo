@@ -39,6 +39,7 @@ import { parsePluginThemeContribution } from "./themes";
 
 const CONTRIBUTION_ID = /^[a-z][a-z0-9-]*$/;
 const PANEL_LOCATIONS = ["workspace", "explorer"] as const;
+const MAX_ATTACHMENT_SUBTITLE_LINES = 4;
 const TIMELINE_ITEM_TYPES = new Set([
   "user_message",
   "assistant_message",
@@ -67,6 +68,12 @@ function normalizePanelLocations(
     throw new Error(`Workspace panel ${panelId} has duplicate locations`);
   }
   return normalized;
+}
+
+function requireSubtitleLines(sourceId: string, lines: number | undefined): number | undefined {
+  if (lines === undefined) return undefined;
+  if (Number.isInteger(lines) && lines >= 1 && lines <= MAX_ATTACHMENT_SUBTITLE_LINES) return lines;
+  throw new Error(`Attachment source ${sourceId} has invalid subtitle lines: ${String(lines)}`);
 }
 
 function isComponentType(value: unknown): boolean {
@@ -361,6 +368,7 @@ export function runPluginClientBundle(
         throw new Error(`Attachment source ${normalizedId} has no search placeholder`);
       }
       if (!method) throw new Error(`Attachment source ${normalizedId} has no search RPC`);
+      const subtitleLines = requireSubtitleLines(normalizedId, contribution.subtitleLines);
       resolvePluginIcon(icon);
       attachmentSourceIds.add(normalizedId);
       return register(
@@ -372,6 +380,7 @@ export function runPluginClientBundle(
           pickerTitle,
           searchPlaceholder,
           search: { ...contribution.search, name: method },
+          subtitleLines,
         },
         () => attachmentSourceIds.delete(normalizedId),
       );
